@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}{{ game.name }} - GameHub{% endblock %}
+
+{% block content %}
+<div class="game-detail">
+    <div class="game-header">
+        <img src="{{ game.image_url }}" alt="{{ game.name }}" class="game-image">
+        <div class="game-header-info">
+            <h1>{{ game.name }}</h1>
+            <p class="game-description">{{ game.description }}</p>
+            {% if not play_mode %}
+                {% if session.user_id %}
+                    <a href="{{ url_for('play_game', gamename=game.name) }}" class="btn btn-primary">Play Game</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">Login to Play</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if play_mode %}
+        <div class="game-content game-play-area">
+            <div class="game-status">
+                <p>{{ game_state.message }}</p>
+                <p>Status: <strong>{{ game_state.status|capitalize }}</strong></p>
+                <p>Score: {{ game_state.score if game_state.score is defined }}</p>
+            </div>
+
+            {% if game_state.type == 'space_invaders' %}
+                <div class="board-container">
+                    <table class="game-board">
+                        {% for row in game_state.board_display %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <form method="POST" class="game-controls">
+                    {% if game_state.status == 'playing' %}
+                        {% for col in range(game_state.width) %}
+                            <button type="submit" name="action" value="fire_{{ col }}" class="btn btn-small">Fire {{ col + 1 }}</button>
+                        {% endfor %}
+                    {% endif %}
+                    <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
+                </form>
+            {% elif game_state.type == 'tetris' %}
+                <div class="board-container">
+                    <table class="game-board">
+                        {% for row in game_state.board_display %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <form method="POST" class="game-controls">
+                    {% if game_state.status == 'playing' %}
+                        <button type="submit" name="action" value="move_left" class="btn btn-small">Left</button>
+                        <button type="submit" name="action" value="move_right" class="btn btn-small">Right</button>
+                        <button type="submit" name="action" value="move_down" class="btn btn-small">Down</button>
+                        <button type="submit" name="action" value="drop" class="btn btn-small">Drop</button>
+                    {% endif %}
+                    <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
+                </form>
+            {% elif game_state.type == 'chess_online' %}
+                <div class="board-container chess-board-container">
+                    <table class="game-board chess-board">
+                        <thead>
+                            <tr><th></th>{% for file in ['a','b','c','d','e','f','g','h'] %}<th>{{ file }}</th>{% endfor %}</tr>
+                        </thead>
+                        <tbody>
+                            {% for row in game_state.board_display %}
+                                <tr>
+                                    <th>{{ 8 - loop.index0 }}</th>
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <form method="POST" class="game-controls chess-controls">
+                    <div class="form-group">
+                        <label for="from_square">From</label>
+                        <input type="text" id="from_square" name="from_square" placeholder="e2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="to_square">To</label>
+                        <input type="text" id="to_square" name="to_square" placeholder="e4" required>
+                    </div>
+                    <button type="submit" name="action" value="move" class="btn btn-small">Move</button>
+                    <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
+                </form>
+            {% elif game_state.type == 'dragon_quest' %}
+                <div class="quest-status">
+                    <table class="quest-table">
+                        {% for row in game_state.board_display %}
+                            <tr>
+                                <td><strong>{{ row[0] }}</strong></td>
+                                <td>{{ row[1] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <form method="POST" class="game-controls quest-controls">
+                    {% if game_state.status == 'playing' %}
+                        {% if game_state.location != 'mountain' %}
+                            <button type="submit" name="action" value="go_mountain" class="btn btn-small">Climb to the Mountain</button>
+                            <button type="submit" name="action" value="search_forest" class="btn btn-small">Search the Forest</button>
+                            <button type="submit" name="action" value="visit_tavern" class="btn btn-small">Visit the Tavern</button>
+                            <button type="submit" name="action" value="heal" class="btn btn-small">Use Potion</button>
+                        {% else %}
+                            <button type="submit" name="action" value="fight_dragon" class="btn btn-small">Fight the Dragon</button>
+                            <button type="submit" name="action" value="return_village" class="btn btn-small">Return to Village</button>
+                        {% endif %}
+                    {% endif %}
+                    <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
+                </form>
+            {% else %}
+                <p>This game is not yet playable.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}GameHub - Play Online Games{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Welcome to GameHub</h1>
+    <p>Play amazing games online with friends from around the world!</p>
+    {% if not session.user_id %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Get Started</a>
+    {% endif %}
+</div>
+
+<div class="search-container">
+    <form method="GET" action="{{ url_for('search') }}">
+        <input type="text" name="q" placeholder="Search games..." class="search-input">
+        <button type="submit" class="btn btn-secondary">Search</button>
+    </form>
+</div>
+
+<section class="categories-section">
+    <h2>Categories</h2>
+    <div class="categories-grid">
+        {% for cat in categories %}
+            <a href="{{ url_for('category', categoryname=cat.name) }}" class="category-card">
+                <div class="category-icon">
+                    {% if cat.name == 'Action' %}🔥
+                    {% elif cat.name == 'Puzzle' %}🧩
+                    {% elif cat.name == 'Adventure' %}🗺️
+                    {% elif cat.name == 'Strategy' %}♟️
+                    {% else %}🎮
+                    {% endif %}
+                </div>
+                <h3>{{ cat.name }}</h3>
+                <p>{{ cat.description }}</p>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="games-section">
+    <h2>Featured Games</h2>
+    <div class="games-grid">
+        {% for game in games %}
+            <div class="game-card">
+                <img src="{{ game.image_url }}" alt="{{ game.name }}">
+                <div class="game-info">
+                    <h3><a href="{{ url_for('game', gamename=game.name) }}">{{ game.name }}</a></h3>
+                    <p>{{ game.description }}</p>
+                    <a href="{{ url_for('game', gamename=game.name) }}" class="btn btn-small">Play Now</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

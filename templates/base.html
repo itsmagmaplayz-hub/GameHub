@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GameHub - Play Online{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{{ url_for('index') }}" class="logo">🎮 GameHub</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn">Categories</a>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('category', categoryname='Action') }}">Action</a>
+                        <a href="{{ url_for('category', categoryname='Puzzle') }}">Puzzle</a>
+                        <a href="{{ url_for('category', categoryname='Adventure') }}">Adventure</a>
+                        <a href="{{ url_for('category', categoryname='Strategy') }}">Strategy</a>
+                    </div>
+                </li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                {% if session.user_id %}
+                    <li><a href="{{ url_for('user_profile', username=session.username) }}">Profile</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                        <span class="close">&times;</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 GameHub. All rights reserved. Play responsibly!</p>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelectorAll('.alert .close').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.parentElement.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
