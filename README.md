@@ -20,7 +20,7 @@ A full-featured Python Flask website for playing games online with user authenti
 - Browse all games in a category
 - Sample games included
 
-## Installation
+## Installation (for manual use)
 
 1. **Install Python dependencies:**
    ```bash
@@ -44,15 +44,24 @@ A full-featured Python Flask website for playing games online with user authenti
 ├── games.db              # SQLite database (created on first run)
 ├── static/
 │   └── style.css         # CSS styling
-└── template/
-    ├── base.html         # Base template with navigation
-    ├── index.html        # Homepage
-    ├── login.html        # Login page
-    ├── register.html     # Registration page
-    ├── game.html         # Individual game page
-    ├── category.html     # Category page
-    ├── search.html       # Search results page
-    └── profile.html      # User profile page
+├── template/
+│   ├── base.html         # Base template with navigation
+│   ├── index.html        # Homepage
+│   ├── login.html        # Login page
+│   ├── register.html     # Registration page
+│   ├── game.html         # Individual game page
+│   ├── category.html     # Category page
+│   ├── search.html       # Search results page
+│   └── profile.html      # User profile page
+└── games/                # All Game Files
+    ├── uno.py
+    ├── tetris.py
+    ├── chess_online.py
+    ├── drago_quest.py
+    ├── memory_match.py
+    ├── snake.py
+    ├── space_invaders.py
+    └── tic_tac_toe
 ```
 
 ## Routes
@@ -84,21 +93,7 @@ The database is automatically created on first run with sample data.
 
 ## Adding New Games
 
-To add games, you can modify the sample data in `app.py` or use Python to query the database:
-
-```python
-import sqlite3
-
-conn = sqlite3.connect('games.db')
-db = conn.cursor()
-
-db.execute("""
-    INSERT INTO games (name, description, category_id, image_url)
-    VALUES ('Game Name', 'Description', 1, 'image_url')
-""")
-conn.commit()
-conn.close()
-```
+You can suggest new games in the Issues page of github, or modify the files and upload the new game files to you suggestion.
 
 ## Notes
 
@@ -106,16 +101,9 @@ conn.close()
 - Passwords are hashed using Werkzeug's security functions
 - The app runs in debug mode by default (change for production)
 - Images use placeholder URLs - replace with actual game images
+- Not all Games are perfect and sometimes they don't work
 
 ## Future Enhancements
 
-- Real game implementations
 - Multiplayer support
-- Leaderboards
-- Achievements/badges
-- Payment integration
 - Social features (friends, chat)
-
----
-
-Enjoy your online gaming platform! 🚀
