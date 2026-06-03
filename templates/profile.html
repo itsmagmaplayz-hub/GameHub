@@ -9,6 +9,8 @@
         <div class="profile-info">
             <h1>{{ user.username }}</h1>
             <p>Email: email hidden by the user</p>
+            <p><strong>XP:</strong> {{ user.xp or 0 }}</p>
+            <a href="{{ url_for('rank_xp') }}" class="btn btn-secondary">View XP Rankings</a>
         </div>
     </div>
     

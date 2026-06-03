@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GameHub - Play Online{% endblock %}</title>
+    {% block head %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -15,15 +16,17 @@
             <ul class="nav-menu">
                 <li><a href="{{ url_for('index') }}">Home</a></li>
                 <li class="dropdown">
-                    <a href="#" class="dropbtn">Categories</a>
+                    <a href="javascript:void(0);" class="dropbtn">Categories</a>
                     <div class="dropdown-content">
                         <a href="{{ url_for('category', categoryname='Action') }}">Action</a>
                         <a href="{{ url_for('category', categoryname='Puzzle') }}">Puzzle</a>
                         <a href="{{ url_for('category', categoryname='Adventure') }}">Adventure</a>
                         <a href="{{ url_for('category', categoryname='Strategy') }}">Strategy</a>
+                        <a href="{{ url_for('category', categoryname='Card Games') }}">Card Games</a>
                     </div>
                 </li>
                 <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('rank_xp') }}">XP Rankings</a></li>
                 {% if session.user_id %}
                     <li><a href="{{ url_for('user_profile', username=session.username) }}">Profile</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
@@ -52,7 +55,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2026 GameHub. All rights reserved. Play responsibly!</p>
+            <p>&copy; 2026 _impYT. All rights reserved. Have fun playing!</p>
         </div>
     </footer>
 

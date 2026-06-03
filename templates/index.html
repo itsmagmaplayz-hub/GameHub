@@ -2,6 +2,10 @@
 
 {% block title %}GameHub - Play Online Games{% endblock %}
 
+{% block head %}
+    <meta http-equiv="refresh" content="600">
+{% endblock %}
+
 {% block content %}
 <div class="hero">
     <h1>Welcome to GameHub</h1>
@@ -28,6 +32,7 @@
                     {% elif cat.name == 'Puzzle' %}🧩
                     {% elif cat.name == 'Adventure' %}🗺️
                     {% elif cat.name == 'Strategy' %}♟️
+                    {% elif cat.name == 'Card Games' %}🃏
                     {% else %}🎮
                     {% endif %}
                 </div>
@@ -39,15 +44,34 @@
 </section>
 
 <section class="games-section">
-    <h2>Featured Games</h2>
+    <h2>Top 4 Most Played</h2>
     <div class="games-grid">
-        {% for game in games %}
+        {% for game in top_games %}
+            <div class="game-card">
+                <img src="{{ game.image_url }}" alt="{{ game.name }}">
+                <div class="game-info">
+                    <h3><a href="{{ url_for('game', gamename=game.name) }}">{{ game.name }}</a></h3>
+                    <p>{{ game.description }}</p>
+                    <p><strong>Plays:</strong> {{ game.play_count }}</p>
+                    <a href="{{ url_for('game', gamename=game.name) }}" class="btn btn-small">Play Now</a>
+                    <a href="{{ url_for('rank_game', gamename=game.name) }}" class="btn btn-secondary">Rankings</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="games-section">
+    <h2>Newly Added Games</h2>
+    <div class="games-grid">
+        {% for game in new_games %}
             <div class="game-card">
                 <img src="{{ game.image_url }}" alt="{{ game.name }}">
                 <div class="game-info">
                     <h3><a href="{{ url_for('game', gamename=game.name) }}">{{ game.name }}</a></h3>
                     <p>{{ game.description }}</p>
                     <a href="{{ url_for('game', gamename=game.name) }}" class="btn btn-small">Play Now</a>
+                    <a href="{{ url_for('rank_game', gamename=game.name) }}" class="btn btn-secondary">Rankings</a>
                 </div>
             </div>
         {% endfor %}

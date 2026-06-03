@@ -6,6 +6,24 @@
 <div class="category-page">
     <h1>{{ category.name }}</h1>
     <p class="category-desc">{{ category.description }}</p>
+
+    {% if new_games %}
+        <section class="games-section">
+            <h3>Newly Added in {{ category.name }}</h3>
+            <div class="games-grid">
+                {% for game in new_games %}
+                    <div class="game-card">
+                        <img src="{{ game.image_url }}" alt="{{ game.name }}">
+                        <div class="game-info">
+                            <h3><a href="{{ url_for('game', gamename=game.name) }}">{{ game.name }}</a></h3>
+                            <p>{{ game.description }}</p>
+                            <a href="{{ url_for('game', gamename=game.name) }}" class="btn btn-small">Play Now</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
     
     {% if games %}
         <div class="games-grid">

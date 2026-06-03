@@ -22,13 +22,18 @@
     {% if play_mode %}
         <div class="game-content game-play-area">
             <div class="game-status">
-                <p>{{ game_state.message }}</p>
-                <p>Status: <strong>{{ game_state.status|capitalize }}</strong></p>
-                <p>Score: {{ game_state.score if game_state.score is defined }}</p>
+                <p id="game-message">{{ game_state.message }}</p>
+                <p>Status: <strong id="game-status">{{ game_state.status|capitalize }}</strong></p>
+                <p>Score: <span id="game-score">{{ game_state.score if game_state.score is defined else '' }}</span></p>
+                {% if game_state.status != 'playing' %}
+                    <div class="game-rank-link">
+                        <a href="{{ url_for('rank_game', gamename=game.name) }}" class="btn btn-secondary">View Rankings</a>
+                    </div>
+                {% endif %}
             </div>
 
             {% if game_state.type == 'space_invaders' %}
-                <div class="board-container">
+                <div id="game-board-container" class="board-container">
                     <table class="game-board">
                         {% for row in game_state.board_display %}
                             <tr>
@@ -48,7 +53,7 @@
                     <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
                 </form>
             {% elif game_state.type == 'tetris' %}
-                <div class="board-container">
+                <div id="game-board-container" class="board-container">
                     <table class="game-board">
                         {% for row in game_state.board_display %}
                             <tr>
@@ -59,47 +64,95 @@
                         {% endfor %}
                     </table>
                 </div>
+                <div class="tetris-info-panel">
+                    {% if game_state.next_piece %}
+                        <div class="next-piece">Next: <span>{{ game_state.next_piece }}</span></div>
+                    {% endif %}
+                </div>
                 <form method="POST" class="game-controls">
                     {% if game_state.status == 'playing' %}
                         <button type="submit" name="action" value="move_left" class="btn btn-small">Left</button>
                         <button type="submit" name="action" value="move_right" class="btn btn-small">Right</button>
                         <button type="submit" name="action" value="move_down" class="btn btn-small">Down</button>
+                        <button type="submit" name="action" value="rotate" class="btn btn-small">Rotate</button>
                         <button type="submit" name="action" value="drop" class="btn btn-small">Drop</button>
                     {% endif %}
                     <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
                 </form>
             {% elif game_state.type == 'chess_online' %}
-                <div class="board-container chess-board-container">
-                    <table class="game-board chess-board">
-                        <thead>
-                            <tr><th></th>{% for file in ['a','b','c','d','e','f','g','h'] %}<th>{{ file }}</th>{% endfor %}</tr>
-                        </thead>
-                        <tbody>
-                            {% for row in game_state.board_display %}
-                                <tr>
-                                    <th>{{ 8 - loop.index0 }}</th>
-                                    {% for cell in row %}
-                                        <td>{{ cell }}</td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <form method="POST" class="game-controls chess-controls">
-                    <div class="form-group">
-                        <label for="from_square">From</label>
-                        <input type="text" id="from_square" name="from_square" placeholder="e2" required>
+                <form method="POST" id="chess-move-form" class="game-controls chess-controls">
+                    <div id="game-board-container" class="board-container chess-board-container">
+                        <table class="game-board chess-board">
+                            <thead>
+                                <tr><th></th>{% for file in ['a','b','c','d','e','f','g','h'] %}<th>{{ file }}</th>{% endfor %}</tr>
+                            </thead>
+                            <tbody>
+                                {% set files = ['a','b','c','d','e','f','g','h'] %}
+                                {% for row in game_state.board_display %}
+                                    {% set row_index = loop.index0 %}
+                                    <tr>
+                                        <th>{{ 8 - row_index }}</th>
+                                        {% for cell in row %}
+                                            {% set square = files[loop.index0] ~ (8 - row_index) %}
+                                            {% set square_color = 'black-square' if (row_index + loop.index0) % 2 else 'white-square' %}
+                                            <td class="{{ square_color }}">
+                                                <button type="button" class="chess-square" data-square="{{ square }}" onclick="selectChessSquare(this)">
+                                                    {{ cell }}
+                                                </button>
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="form-group">
-                        <label for="to_square">To</label>
-                        <input type="text" id="to_square" name="to_square" placeholder="e4" required>
+                    <div class="chess-selection-panel">
+                        <p>From: <span id="selected-from">--</span> | To: <span id="selected-to">--</span></p>
                     </div>
-                    <button type="submit" name="action" value="move" class="btn btn-small">Move</button>
+                    <input type="hidden" id="from_square" name="from_square" value="">
+                    <input type="hidden" id="to_square" name="to_square" value="">
+                    <button type="submit" name="action" value="move" class="btn btn-small" id="chess-move-button" disabled>Move</button>
                     <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
                 </form>
+                <script>
+                    const chessState = { from: '', to: '' };
+                    function resetChessSelection() {
+                        chessState.from = '';
+                        chessState.to = '';
+                        document.getElementById('from_square').value = '';
+                        document.getElementById('to_square').value = '';
+                        document.getElementById('selected-from').textContent = '--';
+                        document.getElementById('selected-to').textContent = '--';
+                        document.getElementById('chess-move-button').disabled = true;
+                        document.querySelectorAll('.chess-square').forEach(el => {
+                            el.classList.remove('selected-from', 'selected-to');
+                        });
+                    }
+                    function selectChessSquare(button) {
+                        const square = button.dataset.square;
+                        if (!chessState.from || (chessState.from && chessState.to)) {
+                            resetChessSelection();
+                            chessState.from = square;
+                            button.classList.add('selected-from');
+                            document.getElementById('selected-from').textContent = square;
+                            document.getElementById('from_square').value = square;
+                            return;
+                        }
+                        if (chessState.from && !chessState.to) {
+                            if (square === chessState.from) {
+                                resetChessSelection();
+                                return;
+                            }
+                            chessState.to = square;
+                            button.classList.add('selected-to');
+                            document.getElementById('selected-to').textContent = square;
+                            document.getElementById('to_square').value = square;
+                            document.getElementById('chess-move-button').disabled = false;
+                        }
+                    }
+                </script>
             {% elif game_state.type == 'dragon_quest' %}
-                <div class="quest-status">
+                <div id="game-board-container" class="quest-status">
                     <table class="quest-table">
                         {% for row in game_state.board_display %}
                             <tr>
@@ -126,7 +179,219 @@
             {% else %}
                 <p>This game is not yet playable.</p>
             {% endif %}
-        </div>
+            {% if game_state.type == 'tic_tac_toe' %}
+                <div id="game-board-container" class="board-container">
+                    <table class="game-board tic-tac-toe">
+                        {% for r in range(3) %}
+                            <tr>
+                                {% for c in range(3) %}
+                                    <td>
+                                        {% set val = game_state.board[r][c] %}
+                                        {% if val %}
+                                            {{ val }}
+                                        {% elif game_state.status == 'playing' %}
+                                            <form method="POST">
+                                                <button type="submit" name="action" value="move_{{ r }}_{{ c }}" class="btn btn-small">Move</button>
+                                            </form>
+                                        {% else %}
+                                            ·
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <form method="POST" class="game-controls">
+                    <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
+                </form>
+            {% endif %}
+
+            {% if game_state.type == 'memory' %}
+                <div id="game-board-container" class="board-container">
+                    <table class="game-board memory-board">
+                        {% for row in game_state.board_display %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <form method="POST" class="game-controls">
+                    {% for i in range(game_state.cards|length) %}
+                        <button type="submit" name="action" value="flip_{{ i }}" class="btn btn-small">Flip {{ i + 1 }}</button>
+                        {% if loop.index % 4 == 0 %}<br>{% endif %}
+                    {% endfor %}
+                    <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
+                </form>
+            {% endif %}
+
+            {% if game_state.type == 'snake' %}
+                <div id="game-board-container" class="board-container">
+                    <table class="game-board snake-board">
+                        {% for row in game_state.board_display %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                <form method="POST" class="game-controls snake-controls">
+                    <button type="submit" name="action" value="move_up" class="btn btn-small">Up</button>
+                    <button type="submit" name="action" value="move_left" class="btn btn-small">Left</button>
+                    <button type="submit" name="action" value="move_right" class="btn btn-small">Right</button>
+                    <button type="submit" name="action" value="move_down" class="btn btn-small">Down</button>
+                    <button type="submit" name="action" value="restart" class="btn btn-secondary">Restart</button>
+                </form>
+            {% endif %}
+        <script>
+            const gameType = "{{ game_state.type }}";
+            const apiPath = window.location.pathname + '/action';
+            const boardContainer = document.getElementById('game-board-container');
+            const messageEl = document.getElementById('game-message');
+            const statusEl = document.getElementById('game-status');
+            const scoreEl = document.getElementById('game-score');
+
+            function capitalize(value) {
+                if (!value) return '';
+                return value.charAt(0).toUpperCase() + value.slice(1);
+            }
+
+            function buildChessBoard(board) {
+                const files = ['a','b','c','d','e','f','g','h'];
+                let html = '<table class="game-board chess-board"><thead><tr><th></th>';
+                files.forEach(file => html += '<th>' + file + '</th>');
+                html += '</tr></thead><tbody>';
+                board.forEach((row, rowIndex) => {
+                    html += '<tr><th>' + (8 - rowIndex) + '</th>';
+                    row.forEach((cell, colIndex) => {
+                        const square = files[colIndex] + (8 - rowIndex);
+                        const squareClass = ((rowIndex + colIndex) % 2 === 0) ? 'white-square' : 'black-square';
+                        html += '<td class="' + squareClass + '"><button type="button" class="chess-square" data-square="' + square + '" onclick="selectChessSquare(this)">' + cell + '</button></td>';
+                    });
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                return html;
+            }
+
+            function buildQuestBoard(board) {
+                let html = '<table class="quest-table">';
+                board.forEach(row => {
+                    html += '<tr><td><strong>' + row[0] + '</strong></td><td>' + row[1] + '</td></tr>';
+                });
+                html += '</table>';
+                return html;
+            }
+
+            function buildTicTacToeBoard(board, status) {
+                let html = '<table class="game-board tic-tac-toe">';
+                board.forEach((row, r) => {
+                    html += '<tr>';
+                    row.forEach((cell, c) => {
+                        html += '<td>';
+                        if (cell !== '·') {
+                            html += cell;
+                        } else if (status === 'playing') {
+                            html += '<form method="POST"><button type="submit" name="action" value="move_' + r + '_' + c + '" class="btn btn-small">Move</button></form>';
+                        } else {
+                            html += '·';
+                        }
+                        html += '</td>';
+                    });
+                    html += '</tr>';
+                });
+                html += '</table>';
+                return html;
+            }
+
+            function buildGameBoard(board, status) {
+                if (gameType === 'chess_online') return buildChessBoard(board);
+                if (gameType === 'dragon_quest') return buildQuestBoard(board);
+                if (gameType === 'tic_tac_toe') return buildTicTacToeBoard(board, status);
+                if (gameType === 'tetris') {
+                    let html = '<table class="game-board tetris-board">';
+                    board.forEach(row => {
+                        html += '<tr>';
+                        row.forEach(cell => {
+                            let classes = 'empty';
+                            if (cell === '�') classes = 'block-active';
+                            else if (cell !== '·') classes = 'block-fixed';
+                            html += '<td class="' + classes + '">' + cell + '</td>';
+                        });
+                        html += '</tr>';
+                    });
+                    html += '</table>';
+                    return html;
+                }
+                let html = '<table class="game-board">';
+                board.forEach(row => {
+                    html += '<tr>';
+                    row.forEach(cell => {
+                        html += '<td>' + cell + '</td>';
+                    });
+                    html += '</tr>';
+                });
+                html += '</table>';
+                return html;
+            }
+
+            function updateUI(data) {
+                if (messageEl) messageEl.textContent = data.message || '';
+                if (statusEl) statusEl.textContent = capitalize(data.status || '');
+                if (scoreEl) scoreEl.textContent = data.score !== undefined && data.score !== null ? data.score : '';
+                if (boardContainer && data.board_display) {
+                    boardContainer.innerHTML = buildGameBoard(data.board_display, data.status);
+                }
+                if (data.next_piece && document.querySelector('.next-piece span')) {
+                    document.querySelector('.next-piece span').textContent = data.next_piece;
+                }
+                if (gameType === 'chess_online') {
+                    resetChessSelection();
+                }
+            }
+
+            function handleGameSubmit(event) {
+                event.preventDefault();
+                const form = event.target;
+                const submitter = event.submitter || form.querySelector('button[type="submit"][data-clicked="true"]');
+                const formData = new FormData(form);
+                if (submitter && submitter.name === 'action') {
+                    formData.set('action', submitter.value);
+                }
+                fetch(apiPath, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert(data.message || 'Action failed.');
+                        return;
+                    }
+                    updateUI(data);
+                });
+            }
+
+            const gamePlayArea = document.querySelector('.game-play-area');
+            if (gamePlayArea) {
+                gamePlayArea.addEventListener('click', event => {
+                    const button = event.target.closest('button[type="submit"]');
+                    if (!button) return;
+                    const form = button.form;
+                    if (!form) return;
+                    form.querySelectorAll('button[type="submit"]').forEach(b => b.dataset.clicked = '');
+                    button.dataset.clicked = 'true';
+                });
+                gamePlayArea.addEventListener('submit', handleGameSubmit);
+            }
+        </script>
     {% endif %}
 </div>
 {% endblock %}

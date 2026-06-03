@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}XP Leaderboard - GameHub{% endblock %}
+
+{% block content %}
+<div class="rank-page">
+    <h1>XP Leaderboard</h1>
+    <p>Track the users with the most XP earned from playing games.</p>
+
+    {% if rankings %}
+        <table class="scores-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>XP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in rankings %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ entry.username }}</td>
+                        <td>{{ entry.xp or 0 }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No XP has been earned yet. Start playing to rank up!</p>
+    {% endif %}
+</div>
+{% endblock %}

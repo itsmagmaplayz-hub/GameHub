@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ game.name }} Rankings - GameHub{% endblock %}
+
+{% block content %}
+<div class="rank-page">
+    <h1>{{ game.name }} Rankings</h1>
+    <p>See the top scores for {{ game.name }} and compare your best performance.</p>
+
+    {% if rankings %}
+        <table class="scores-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    {% if rank_type == 'wins_elo' %}
+                        <th>Wins</th>
+                        <th>Elo</th>
+                    {% else %}
+                        <th>Best Score</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in rankings %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ entry.username }}</td>
+                        {% if rank_type == 'wins_elo' %}
+                            <td>{{ entry.wins }}</td>
+                            <td>{{ entry.elo if entry.elo is not none else 1200 }}</td>
+                        {% else %}
+                            <td>{{ entry.best_score }}</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No rankings available yet. Be the first to finish a game and show up here!</p>
+    {% endif %}
+
+    <a href="{{ url_for('game', gamename=game.name) }}" class="btn btn-primary">Back to Game</a>
+</div>
+{% endblock %}
